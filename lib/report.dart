@@ -19,57 +19,66 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
-  Future<Map<String, List<Map<String, dynamic>>>> _getAllData() async {
-    return await StorageService.instance.getAllData();
+  String formattedDate(DateTime? date) {
+    final formatter = DateFormat('EEEE, MMMM d, y');
+    return formatter.format(date!).toString();
   }
 
-  Future<File> _generateAndSavePDF() async {
-    final allData = await _getAllData();
-    print(allData);
-    final milk = await StorageService.instance.getAllMilks();
-    print(milk);
-    pw.TableRow rows = pw.TableRow(children: []);
-    allData.forEach(
-      (tableName, tableData) {
-       
-        final columnTitles =
-            tableData.isNotEmpty ? tableData.first.keys.toList() : [];
+ Future<File> _generateAndSavePDF() async {
+  final milk = await StorageService.instance.getAllMilks();
+  
+  final document = pw.Document();
 
-        // Remove 'id' and 'userId' from column titles
-        columnTitles.remove('id');
-        columnTitles.remove('userId');
-      },
-    );
-
-    final document = pw.Document();
-    // Assuming you have a method to format and structure data for the report
-    final reportContent = _formatReportData(allData);
-    document.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(children: [
+  document.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Column(
+          children: [
             pw.Text(
-              '',
+              'Milk Records',
               style: const pw.TextStyle(color: PdfColors.green, fontSize: 30),
             ),
             pw.Table(
-              children: [],
+              border: pw.TableBorder.all(),
+              //defaultColumnWidth: pw.FixedColumnWidth(150),
+              
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Center(child: pw.Text('Date', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20))),
+                    pw.Center(child: pw.Text('Cow ID', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20))),
+                    pw.Center(child: pw.Text('Time', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20))),
+                    pw.Center(child: pw.Text('Liters', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20))),
+                  ],
+                ),
+                for (var element in milk)
+                  pw.TableRow(
+                    children: [
+                      pw.Center(child: pw.Text(formattedDate(element.date), style:const  pw.TextStyle(fontSize: 20))),
+                      pw.Center(child: pw.Text(element.cowID, style:const  pw.TextStyle(fontSize: 20))),
+                      pw.Center(child: pw.Text(element.time, style:const  pw.TextStyle(fontSize: 20))),
+                      pw.Center(child: pw.Text(element.liters.toString(), style:const  pw.TextStyle(fontSize: 20))),
+                    ],
+                  ),
+              ],
             ),
-          ]);
-        },
-      ),
-    );
+          ],
+        );
+      },
+    ),
+  );
 
-    final List<int> bytes = await document.save();
+  final List<int> bytes = await document.save();
 
-    // Save the bytes to a file
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final file = File('$path/report.pdf');
-    await file.writeAsBytes(bytes);
-    return file;
-  }
+  // Save the bytes to a file
+  final directory = await getApplicationDocumentsDirectory();
+  final path = directory.path;
+  final file = File('$path/report.pdf');
+  await file.writeAsBytes(bytes);
+  return file;
+}
+
 
   String _formatDataItem(dynamic value) {
     // Implement logic to format individual data items for the report
@@ -117,11 +126,6 @@ class _ReportPageState extends State<ReportPage> {
       formattedData += '\n';
     });
     return formattedData;
-  }
-
-  String formattedDate(DateTime dateTime) {
-    final DateFormat formatter = DateFormat('MM/dd/yyyy');
-    return formatter.format(dateTime);
   }
 
   @override

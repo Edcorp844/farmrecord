@@ -3,13 +3,18 @@ import 'dart:async';
 import 'package:farmrecords/modal.dart';
 import 'package:farmrecords/services/auth.dart';
 import 'package:sqflite/sqflite.dart';
-
 class StorageService {
   static final StorageService instance = StorageService.init();
+  final _cattleController = StreamController<List<Catttle>>.broadcast();
 
   static Database? _database;
 
-  StorageService.init();
+  StorageService.init() {
+    // Call fetchCattle when the service is initialized
+    fetchCattle();
+  }
+
+  Stream<List<Catttle>> get cattleStream => _cattleController.stream;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -17,10 +22,35 @@ class StorageService {
     return _database!;
   }
 
+  Future<void> fetchCattle() async {
+    final db = await database;
+    while (true) {
+      try {
+        final List<Map<String, dynamic>> maps = await db.query('cattle');
+        final cattleList = List.generate(maps.length, (i) {
+          return Catttle(
+            id: maps[i]['id'],
+            cattleId: maps[i]['cattleId'],
+            type: maps[i]['type'],
+            purpose: maps[i]['purpose'],
+          );
+        });
+        // Add the cattle list to the stream
+        _cattleController.sink.add(cattleList);
+        // Add a delay to simulate periodic checks (replace with actual watch method)
+        await Future.delayed(const Duration(seconds: 5)); // Adjust delay as needed
+      } catch (e) {
+        print('Error getting cattle: $e');
+        throw Exception('Failed to get cattle data');
+      }
+    }
+  }
+
+
   Future<Database> initDB(String filePath) async {
     final dpath = await getDatabasesPath();
     final path = '$dpath/$filePath';
-    return await openDatabase(path, version: 2, onCreate: _createDB);
+    return await openDatabase(path, version: 3, onCreate: _createDB);
   }
 
   FutureOr<void> _createDB(Database db, int version) async {
@@ -66,12 +96,13 @@ CREATE TABLE diseased(
 CREATE TABLE milk (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cowId TEXT,
-  date TIMESTAMP, 
+  date TIMESTAMP,
   liters INT,
+  time TEXT,  
   userId INTEGER,
   FOREIGN KEY (userId) REFERENCES users(id)
-  );
-  ''');
+);
+''');
 
     await db.execute('''
 CREATE TABLE feedings(
@@ -210,6 +241,7 @@ CREATE TABLE expenses(
     }
   }
 
+
   Future<void> insertDiseased(Diseased diseased) async {
     final db = await database;
     try {
@@ -248,11 +280,10 @@ CREATE TABLE expenses(
       milk.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-      //  print('Inserted milk with ID: $insertedId');
+    //  print('Inserted milk with ID: $insertedId');
     print('Executed SQL: ${db.toString()}'); // Log the executed SQL statement
-    print('Milk data map: ${milk.toMap()}'); 
+    print('Milk data map: ${milk.toMap()}');
     print('Inserted');
-
   }
 
   Future<void> insertFeeding(Feeding feeding) async {
@@ -310,5 +341,9 @@ CREATE TABLE expenses(
       totalLiters += milk.liters;
     }
     return totalLiters;
+  }
+
+   void dispose() {
+    _cattleController.close();
   }
 }

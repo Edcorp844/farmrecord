@@ -1,13 +1,16 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:farmrecords/consts.dart';
+import 'package:farmrecords/expense.dart';
 import 'package:farmrecords/insert.dart';
 import 'package:farmrecords/login.dart';
 import 'package:farmrecords/report.dart';
 import 'package:farmrecords/services/auth.dart';
 import 'package:farmrecords/services/storage.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Farm extends StatefulWidget {
@@ -109,7 +112,10 @@ class _FarmState extends State<Farm> {
       ),
       body: SafeArea(
           child: Padding(
-        padding: const EdgeInsets.only(right: 16, left: 16, ),
+        padding: const EdgeInsets.only(
+          right: 16,
+          left: 16,
+        ),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -247,18 +253,29 @@ class _FarmState extends State<Farm> {
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: kprimaryColor),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: const Text(
-                                      'More',
-                                      style: TextStyle(
-                                        color: kprimaryColor,
-                                        fontWeight: FontWeight.bold,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ExpansesScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        border:
+                                            Border.all(color: kprimaryColor),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'More',
+                                        style: TextStyle(
+                                          color: kprimaryColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   )
@@ -331,19 +348,29 @@ class _FarmState extends State<Farm> {
                                   const SizedBox(
                                     height: 10,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 8),
-                                    decoration: BoxDecoration(
-                                        border:
-                                            Border.all(color: kprimaryColor),
-                                        borderRadius: BorderRadius.circular(20),
-                                        color: kprimaryColor),
-                                    child: const Text(
-                                      'More',
-                                      style: TextStyle(
-                                        color: ksecondaryColor,
-                                        fontWeight: FontWeight.bold,
+                                  GestureDetector(
+                                    onTap: (){
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                            Feeding()
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 8),
+                                      decoration: BoxDecoration(
+                                          border:
+                                              Border.all(color: kprimaryColor),
+                                          borderRadius: BorderRadius.circular(20),
+                                          color: kprimaryColor),
+                                      child: const Text(
+                                        'More',
+                                        style: TextStyle(
+                                          color: ksecondaryColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   )
@@ -382,14 +409,11 @@ class _FarmState extends State<Farm> {
                         color: Colors.white,
                       ),
                     ),
-
                     const Text('Last Bought feeds on'),
                     const Text(
                       '12 Nov, 2025',
                       style: TextStyle(color: Colors.grey),
                     ),
-
-                    // Text()
                   ],
                 ),
               ),
